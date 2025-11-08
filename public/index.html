@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shared Notes</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>Shared Notes</h1>
+        <p>Leave a note for everyone to see. Notes are saved on the server.</p>
+      </header>
+
+      <section class="app__notes" aria-labelledby="notes-heading">
+        <h2 id="notes-heading">All notes</h2>
+        <ul id="notes-list" class="notes-list"></ul>
+        <p id="empty-state" class="empty-state">No notes yet. Be the first!</p>
+      </section>
+    </main>
+
+    <button
+      type="button"
+      class="fab"
+      id="open-form"
+      aria-label="Add a new note"
+    >
+      +
+    </button>
+
+    <div class="modal" id="note-modal" aria-hidden="true" hidden>
+      <div class="modal__overlay" data-close></div>
+      <div
+        class="modal__content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-note-heading"
+      >
+        <button
+          type="button"
+          class="modal__close"
+          id="close-form"
+          aria-label="Close add note form"
+        >
+          ×
+        </button>
+        <h2 id="add-note-heading">Add a note</h2>
+        <form id="note-form">
+          <label class="input-group">
+            <span>Name (optional)</span>
+            <input
+              type="text"
+              id="author"
+              name="author"
+              maxlength="50"
+              placeholder="Anonymous"
+            />
+          </label>
+          <label class="input-group">
+            <span>Note</span>
+            <textarea
+              id="content"
+              name="content"
+              rows="6"
+              required
+              placeholder="Write your note..."
+            ></textarea>
+          </label>
+          <div class="form__actions">
+            <button type="submit" id="submit-btn">Save note</button>
+            <p class="form__status" id="status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <template id="note-template">
+      <li class="note">
+        <div class="note__meta">
+          <span class="note__author"></span>
+          <time class="note__time"></time>
+        </div>
+        <p class="note__content"></p>
+      </li>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
+
