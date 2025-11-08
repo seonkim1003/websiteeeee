@@ -144,6 +144,19 @@ button:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: opacity 0.2s ease;
+}
+
+.note--pending {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.note__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .note__meta {
@@ -161,6 +174,31 @@ button:hover:not(:disabled) {
 
 .note__time {
   font-style: italic;
+}
+
+.note__delete {
+  align-self: center;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 0;
+  min-width: unset;
+}
+
+.note__delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.note__delete:focus {
+  outline: 3px solid rgba(239, 68, 68, 0.35);
+  outline-offset: 3px;
 }
 
 .note__content {

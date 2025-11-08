@@ -77,9 +77,19 @@
 
     <template id="note-template">
       <li class="note">
-        <div class="note__meta">
-          <span class="note__author"></span>
-          <time class="note__time"></time>
+        <div class="note__header">
+          <div class="note__meta">
+            <span class="note__author"></span>
+            <time class="note__time"></time>
+          </div>
+          <button
+            type="button"
+            class="note__delete"
+            data-action="delete"
+            aria-label="Delete note"
+          >
+            ×
+          </button>
         </div>
         <p class="note__content"></p>
       </li>

@@ -126,7 +126,7 @@ async function handleSubmit(event) {
     prependNote(note);
     form.reset();
     showStatus("Note saved!");
-    contentField?.focus();
+    closeModal();
   } catch (error) {
     console.error(error);
     showStatus(error.message || "Something went wrong. Try again.", true);
@@ -141,6 +141,29 @@ function prependNote(note) {
   notesList.insertAdjacentElement("afterbegin", element);
 }
 
+async function handleDelete(id, noteElement) {
+  noteElement?.classList.add("note--pending");
+  try {
+    const response = await fetch(`/api/notes/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      const { message } = await response.json().catch(() => ({}));
+      throw new Error(message || "Failed to delete note.");
+    }
+
+    noteElement.remove();
+    if (!notesList.children.length) {
+      emptyState.hidden = false;
+    }
+  } catch (error) {
+    console.error(error);
+    noteElement?.classList.remove("note--pending");
+    alert(error.message || "Could not delete the note. Try again.");
+  }
+}
+
 form.addEventListener("submit", handleSubmit);
 openFormBtn?.addEventListener("click", openModal);
 closeFormBtn?.addEventListener("click", closeModal);
@@ -149,6 +172,19 @@ modalOverlay?.addEventListener("click", closeModal);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && modal && !modal.hidden) {
     closeModal();
+  }
+});
+
+notesList.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.dataset.action === "delete") {
+    const noteElement = target.closest(".note");
+    const noteId = noteElement?.dataset.id;
+    if (noteId) {
+      handleDelete(noteId, noteElement);
+    }
   }
 });
 
