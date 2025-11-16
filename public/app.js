@@ -1,5 +1,3 @@
-const notesList = document.querySelector("#notes-list");
-const emptyState = document.querySelector("#empty-state");
 const noteTemplate = document.querySelector("#note-template");
 const form = document.querySelector("#note-form");
 const statusMessage = document.querySelector("#status");
@@ -9,6 +7,16 @@ const openFormBtn = document.querySelector("#open-form");
 const closeFormBtn = document.querySelector("#close-form");
 const modal = document.querySelector("#note-modal");
 const modalOverlay = modal?.querySelector("[data-close]");
+
+const sections = ["video", "research", "fun"];
+
+function getSectionList(section) {
+  return document.querySelector(`[data-section-list="${section}"]`);
+}
+
+function getSectionEmpty(section) {
+  return document.querySelector(`[data-section-empty="${section}"]`);
+}
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -30,20 +38,55 @@ async function fetchNotes() {
 }
 
 function renderNotes(notes) {
-  notesList.innerHTML = "";
+  // Clear all section lists
+  sections.forEach((section) => {
+    const list = getSectionList(section);
+    const empty = getSectionEmpty(section);
+    if (list) list.innerHTML = "";
+    if (empty) empty.hidden = true;
+  });
 
   if (!notes.length) {
-    emptyState.hidden = false;
+    sections.forEach((section) => {
+      const empty = getSectionEmpty(section);
+      if (empty) empty.hidden = false;
+    });
     return;
   }
 
-  emptyState.hidden = true;
+  // Group notes by section
+  const notesBySection = {
+    video: [],
+    research: [],
+    fun: []
+  };
 
-  const fragment = document.createDocumentFragment();
   notes.forEach((note) => {
-    fragment.appendChild(createNoteElement(note));
+    const section = note.section || "video"; // Default to video for old notes without section
+    if (notesBySection[section]) {
+      notesBySection[section].push(note);
+    }
   });
-  notesList.appendChild(fragment);
+
+  // Render notes in their respective sections
+  sections.forEach((section) => {
+    const list = getSectionList(section);
+    const empty = getSectionEmpty(section);
+    const sectionNotes = notesBySection[section] || [];
+
+    if (sectionNotes.length === 0) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+
+    if (empty) empty.hidden = true;
+
+    const fragment = document.createDocumentFragment();
+    sectionNotes.forEach((note) => {
+      fragment.appendChild(createNoteElement(note));
+    });
+    if (list) list.appendChild(fragment);
+  });
 }
 
 function createNoteElement(note) {
@@ -99,11 +142,17 @@ async function handleSubmit(event) {
   const formData = new FormData(form);
   const payload = {
     author: formData.get("author")?.trim(),
-    content: formData.get("content")?.trim()
+    content: formData.get("content")?.trim(),
+    section: formData.get("section")?.trim()
   };
 
   if (!payload.content) {
     showStatus("Note content cannot be empty.", true);
+    return;
+  }
+
+  if (!payload.section || !["video", "research", "fun"].includes(payload.section)) {
+    showStatus("Please select a section.", true);
     return;
   }
 
@@ -136,9 +185,15 @@ async function handleSubmit(event) {
 }
 
 function prependNote(note) {
-  emptyState.hidden = true;
-  const element = createNoteElement(note);
-  notesList.insertAdjacentElement("afterbegin", element);
+  const section = note.section || "video";
+  const list = getSectionList(section);
+  const empty = getSectionEmpty(section);
+  
+  if (empty) empty.hidden = true;
+  if (list) {
+    const element = createNoteElement(note);
+    list.insertAdjacentElement("afterbegin", element);
+  }
 }
 
 async function handleDelete(id, noteElement) {
@@ -153,9 +208,14 @@ async function handleDelete(id, noteElement) {
       throw new Error(message || "Failed to delete note.");
     }
 
+    const section = noteElement.closest("[data-section]")?.dataset.section;
+    const list = section ? getSectionList(section) : null;
+    const empty = section ? getSectionEmpty(section) : null;
+
     noteElement.remove();
-    if (!notesList.children.length) {
-      emptyState.hidden = false;
+    
+    if (list && list.children.length === 0 && empty) {
+      empty.hidden = false;
     }
   } catch (error) {
     console.error(error);
@@ -175,16 +235,22 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-notesList.addEventListener("click", (event) => {
-  const target = event.target;
-  if (!(target instanceof HTMLElement)) return;
+// Add click listeners to all section lists
+sections.forEach((section) => {
+  const list = getSectionList(section);
+  if (list) {
+    list.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
 
-  if (target.dataset.action === "delete") {
-    const noteElement = target.closest(".note");
-    const noteId = noteElement?.dataset.id;
-    if (noteId) {
-      handleDelete(noteId, noteElement);
-    }
+      if (target.dataset.action === "delete") {
+        const noteElement = target.closest(".note");
+        const noteId = noteElement?.dataset.id;
+        if (noteId) {
+          handleDelete(noteId, noteElement);
+        }
+      }
+    });
   }
 });
 

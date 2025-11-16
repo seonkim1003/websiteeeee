@@ -13,31 +13,22 @@
         <p>Leave a note for everyone to see. Notes are saved on the server.</p>
       </header>
 
-      <section class="app__notes" aria-labelledby="notes-heading">
-        <h2 id="notes-heading">All notes</h2>
-        <ul id="notes-list" class="notes-list"></ul>
-        <p id="empty-state" class="empty-state">No notes yet. Be the first!</p>
-      </section>
-
-      <section class="app__section" aria-labelledby="video-heading">
+      <section class="app__section" aria-labelledby="video-heading" data-section="video">
         <h2 id="video-heading">Video</h2>
-        <div class="section__content">
-          <p>Video content goes here.</p>
-        </div>
+        <ul class="notes-list" data-section-list="video"></ul>
+        <p class="empty-state" data-section-empty="video">No notes yet. Be the first!</p>
       </section>
 
-      <section class="app__section" aria-labelledby="research-heading">
+      <section class="app__section" aria-labelledby="research-heading" data-section="research">
         <h2 id="research-heading">Research</h2>
-        <div class="section__content">
-          <p>Research content goes here.</p>
-        </div>
+        <ul class="notes-list" data-section-list="research"></ul>
+        <p class="empty-state" data-section-empty="research">No notes yet. Be the first!</p>
       </section>
 
-      <section class="app__section" aria-labelledby="fun-heading">
+      <section class="app__section" aria-labelledby="fun-heading" data-section="fun">
         <h2 id="fun-heading">Fun</h2>
-        <div class="section__content">
-          <p>Fun content goes here.</p>
-        </div>
+        <ul class="notes-list" data-section-list="fun"></ul>
+        <p class="empty-state" data-section-empty="fun">No notes yet. Be the first!</p>
       </section>
     </main>
 
@@ -68,6 +59,19 @@
         </button>
         <h2 id="add-note-heading">Add a note</h2>
         <form id="note-form">
+          <label class="input-group">
+            <span>Section</span>
+            <select
+              id="section"
+              name="section"
+              required
+            >
+              <option value="">Select a section...</option>
+              <option value="video">Video</option>
+              <option value="research">Research</option>
+              <option value="fun">Fun</option>
+            </select>
+          </label>
           <label class="input-group">
             <span>Name (optional)</span>
             <input

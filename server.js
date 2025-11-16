@@ -61,10 +61,14 @@ app.get("/api/notes", async (req, res) => {
 });
 
 app.post("/api/notes", async (req, res) => {
-  const { author = "Anonymous", content } = req.body || {};
+  const { author = "Anonymous", content, section } = req.body || {};
 
   if (!content || !content.trim()) {
     return res.status(400).json({ message: "Note content is required." });
+  }
+
+  if (!section || !["video", "research", "fun"].includes(section)) {
+    return res.status(400).json({ message: "Valid section is required (video, research, or fun)." });
   }
 
   try {
@@ -73,6 +77,7 @@ app.post("/api/notes", async (req, res) => {
       id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
       author: author.trim() || "Anonymous",
       content: content.trim(),
+      section: section,
       createdAt: new Date().toISOString()
     };
     notes.unshift(newNote);
