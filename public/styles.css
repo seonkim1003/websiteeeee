@@ -58,6 +58,24 @@ body {
   font-size: 1.8rem;
 }
 
+.app__section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.app__section h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.section__content {
+  color: #444;
+  line-height: 1.6;
+}
+
 form {
   display: flex;
   flex-direction: column;
