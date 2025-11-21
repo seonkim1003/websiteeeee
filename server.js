@@ -67,8 +67,8 @@ app.post("/api/notes", async (req, res) => {
     return res.status(400).json({ message: "Note content is required." });
   }
 
-  if (!section || !["video", "research", "fun"].includes(section)) {
-    return res.status(400).json({ message: "Valid section is required (video, research, or fun)." });
+  if (!section || !["homemadedelights", "studentselfdefenseadvocates"].includes(section)) {
+    return res.status(400).json({ message: "Valid section is required (homemadedelights or studentselfdefenseadvocates)." });
   }
 
   try {

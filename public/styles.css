@@ -5,6 +5,46 @@
   color: #222;
 }
 
+/* Pastry Theme (Homemade Delights) */
+body[data-active-group="homemadedelights"] {
+  --bg-gradient: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 20%, #e17055 100%);
+  --card-bg: rgba(255, 250, 240, 0.95);
+  --header-bg: rgba(255, 245, 230, 0.9);
+  --primary-color: #d63031;
+  --primary-hover: #e84393;
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --accent-color: #fdcb6e;
+  --button-bg: linear-gradient(135deg, #e17055, #d63031);
+  --button-shadow: rgba(214, 48, 49, 0.35);
+  --fab-bg: linear-gradient(135deg, #e17055, #d63031);
+  --fab-shadow: rgba(214, 48, 49, 0.4);
+  --focus-color: rgba(225, 112, 85, 0.8);
+  --note-bg: rgba(255, 250, 240, 0.98);
+  --delete-bg: rgba(214, 48, 49, 0.15);
+  --delete-color: #c0392b;
+}
+
+/* Self-Defense Theme (Student Self Defense Advocates) */
+body[data-active-group="studentselfdefenseadvocates"] {
+  --bg-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #1a1a2e 100%);
+  --card-bg: rgba(26, 32, 44, 0.95);
+  --header-bg: rgba(30, 41, 59, 0.9);
+  --primary-color: #e11d48;
+  --primary-hover: #f43f5e;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --accent-color: #475569;
+  --button-bg: linear-gradient(135deg, #dc2626, #991b1b);
+  --button-shadow: rgba(220, 38, 38, 0.4);
+  --fab-bg: linear-gradient(135deg, #dc2626, #991b1b);
+  --fab-shadow: rgba(220, 38, 38, 0.5);
+  --focus-color: rgba(220, 38, 38, 0.8);
+  --note-bg: rgba(30, 41, 59, 0.98);
+  --delete-bg: rgba(220, 38, 38, 0.2);
+  --delete-color: #ef4444;
+}
+
 *,
 *::before,
 *::after {
@@ -14,7 +54,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+  background: var(--bg-gradient);
+  transition: background 0.3s ease;
 }
 
 .app {
@@ -26,23 +67,61 @@ body {
   gap: 2rem;
 }
 
+.group-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.group-nav__button {
+  padding: 0.75rem 2rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.group-nav__button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.group-nav__button.active {
+  background: var(--button-bg);
+  color: white;
+  box-shadow: 0 4px 15px var(--button-shadow);
+  border-color: transparent;
+}
+
 .app__header {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--header-bg);
   backdrop-filter: blur(5px);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
 .app__header h1 {
   margin: 0 0 0.5rem;
   font-size: 2.5rem;
+  color: var(--text-primary);
 }
 
 .app__header p {
   margin: 0;
-  color: #444;
+  color: var(--text-secondary);
 }
 
 .app__notes {
@@ -59,16 +138,22 @@ body {
 }
 
 .app__section {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.app__section[hidden] {
+  display: none;
 }
 
 .app__section h2 {
   margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.8rem;
+  color: var(--text-primary);
 }
 
 .section__content {
@@ -87,21 +172,21 @@ form {
   flex-direction: column;
   gap: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 input,
 textarea,
 select {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
-  background-color: #ffffff;
-  color: #1a202c;
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.08);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 select {
@@ -112,13 +197,13 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 3px solid rgba(116, 235, 213, 0.8);
-  border-color: rgba(116, 235, 213, 0.8);
+  outline: 3px solid var(--focus-color);
+  border-color: var(--focus-color);
 }
 
-button {
+button:not(.group-nav__button) {
   align-self: flex-start;
-  background: #6c63ff;
+  background: var(--button-bg);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -127,18 +212,18 @@ button {
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+  box-shadow: 0 10px 20px var(--button-shadow);
 }
 
-button:disabled {
-  background: rgba(108, 99, 255, 0.6);
+button:not(.group-nav__button):disabled {
+  opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-button:hover:not(:disabled) {
+button:not(.group-nav__button):hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(108, 99, 255, 0.4);
+  box-shadow: 0 15px 35px var(--button-shadow);
 }
 
 .form__status {
@@ -162,14 +247,15 @@ button:hover:not(:disabled) {
 }
 
 .note {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--note-bg);
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   transition: opacity 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .note--pending {
@@ -188,13 +274,13 @@ button:hover:not(:disabled) {
   display: flex;
   gap: 1rem;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
   flex-wrap: wrap;
 }
 
 .note__author {
   font-weight: 600;
-  color: #2b2d42;
+  color: var(--text-primary);
 }
 
 .note__time {
@@ -209,8 +295,8 @@ button:hover:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(239, 68, 68, 0.1);
-  color: #b91c1c;
+  background: var(--delete-bg);
+  color: var(--delete-color);
   font-size: 1.25rem;
   font-weight: 600;
   padding: 0;
@@ -218,11 +304,12 @@ button:hover:not(:disabled) {
 }
 
 .note__delete:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: var(--delete-bg);
+  opacity: 0.8;
 }
 
 .note__delete:focus {
-  outline: 3px solid rgba(239, 68, 68, 0.35);
+  outline: 3px solid var(--focus-color);
   outline-offset: 3px;
 }
 
@@ -230,13 +317,13 @@ button:hover:not(:disabled) {
   margin: 0;
   font-size: 1.05rem;
   line-height: 1.5;
-  color: #2d3748;
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .empty-state {
-  color: #333;
+  color: var(--text-secondary);
   text-align: center;
   font-style: italic;
 }
@@ -252,9 +339,11 @@ button:hover:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ff8a65, #ff4081);
-  box-shadow: 0 18px 35px rgba(255, 64, 129, 0.35);
+  background: var(--fab-bg);
+  box-shadow: 0 18px 35px var(--fab-shadow);
   z-index: 900;
+  color: white;
+  border: none;
 }
 
 .fab:focus {
@@ -277,18 +366,18 @@ button:hover:not(:disabled) {
 .modal__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(6px);
 }
 
 .modal__content {
   position: relative;
-  background: linear-gradient(135deg, #ffffff 0%, #f7f9fc 100%);
+  background: var(--card-bg);
   border-radius: 18px;
   padding: 2rem;
   max-width: 520px;
   width: min(92vw, 520px);
-  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -298,7 +387,7 @@ button:hover:not(:disabled) {
 .modal__content h2 {
   margin: 0;
   font-size: 1.9rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .modal__close {
@@ -308,19 +397,19 @@ button:hover:not(:disabled) {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: rgba(108, 99, 255, 0.15);
-  color: #4338ca;
+  background: var(--delete-bg);
+  color: var(--delete-color);
   font-size: 1.5rem;
   align-self: center;
   box-shadow: none;
 }
 
 .modal__close:hover {
-  background: rgba(108, 99, 255, 0.25);
+  opacity: 0.8;
 }
 
 .modal__close:focus {
-  outline: 3px solid rgba(108, 99, 255, 0.4);
+  outline: 3px solid var(--focus-color);
   outline-offset: 3px;
 }
 

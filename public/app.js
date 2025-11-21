@@ -7,8 +7,12 @@ const openFormBtn = document.querySelector("#open-form");
 const closeFormBtn = document.querySelector("#close-form");
 const modal = document.querySelector("#note-modal");
 const modalOverlay = modal?.querySelector("[data-close]");
+const body = document.body;
+const groupTitle = document.querySelector("#group-title");
+const sectionInput = document.querySelector("#section");
 
-const sections = ["video", "research", "fun"];
+const sections = ["homemadedelights", "studentselfdefenseadvocates"];
+let activeGroup = "homemadedelights";
 
 function getSectionList(section) {
   return document.querySelector(`[data-section-list="${section}"]`);
@@ -46,47 +50,28 @@ function renderNotes(notes) {
     if (empty) empty.hidden = true;
   });
 
-  if (!notes.length) {
-    sections.forEach((section) => {
-      const empty = getSectionEmpty(section);
-      if (empty) empty.hidden = false;
-    });
+  // Filter notes for the active group only
+  const activeGroupNotes = notes.filter((note) => {
+    const section = note.section || "homemadedelights";
+    return section === activeGroup;
+  });
+
+  // Render notes for the active group
+  const list = getSectionList(activeGroup);
+  const empty = getSectionEmpty(activeGroup);
+
+  if (activeGroupNotes.length === 0) {
+    if (empty) empty.hidden = false;
     return;
   }
 
-  // Group notes by section
-  const notesBySection = {
-    video: [],
-    research: [],
-    fun: []
-  };
+  if (empty) empty.hidden = true;
 
-  notes.forEach((note) => {
-    const section = note.section || "video"; // Default to video for old notes without section
-    if (notesBySection[section]) {
-      notesBySection[section].push(note);
-    }
+  const fragment = document.createDocumentFragment();
+  activeGroupNotes.forEach((note) => {
+    fragment.appendChild(createNoteElement(note));
   });
-
-  // Render notes in their respective sections
-  sections.forEach((section) => {
-    const list = getSectionList(section);
-    const empty = getSectionEmpty(section);
-    const sectionNotes = notesBySection[section] || [];
-
-    if (sectionNotes.length === 0) {
-      if (empty) empty.hidden = false;
-      return;
-    }
-
-    if (empty) empty.hidden = true;
-
-    const fragment = document.createDocumentFragment();
-    sectionNotes.forEach((note) => {
-      fragment.appendChild(createNoteElement(note));
-    });
-    if (list) list.appendChild(fragment);
-  });
+  if (list) list.appendChild(fragment);
 }
 
 function createNoteElement(note) {
@@ -151,10 +136,8 @@ async function handleSubmit(event) {
     return;
   }
 
-  if (!payload.section || !["video", "research", "fun"].includes(payload.section)) {
-    showStatus("Please select a section.", true);
-    return;
-  }
+  // Automatically set section based on active group
+  payload.section = activeGroup;
 
   submitBtn.disabled = true;
   showStatus("Saving...");
@@ -185,7 +168,10 @@ async function handleSubmit(event) {
 }
 
 function prependNote(note) {
-  const section = note.section || "video";
+  // Only prepend if the note belongs to the active group
+  const section = note.section || "homemadedelights";
+  if (section !== activeGroup) return;
+  
   const list = getSectionList(section);
   const empty = getSectionEmpty(section);
   
@@ -224,6 +210,61 @@ async function handleDelete(id, noteElement) {
   }
 }
 
+function switchGroup(group) {
+  if (!sections.includes(group)) return;
+  
+  activeGroup = group;
+  body.setAttribute("data-active-group", group);
+  
+  // Update navigation buttons
+  document.querySelectorAll(".group-nav__button").forEach((btn) => {
+    if (btn.dataset.group === group) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+  
+  // Update title
+  if (groupTitle) {
+    groupTitle.textContent = group === "homemadedelights" 
+      ? "Homemade Delights" 
+      : "Student Self Defense Advocates";
+  }
+  
+  // Show/hide screens
+  document.querySelectorAll(".screen").forEach((screen) => {
+    if (screen.dataset.screen === group) {
+      screen.hidden = false;
+    } else {
+      screen.hidden = true;
+    }
+  });
+  
+  // Update form section input
+  if (sectionInput) {
+    sectionInput.value = group;
+  }
+  
+  // Re-render notes for the active group
+  fetchNotes();
+}
+
+// Initialize form section
+if (sectionInput) {
+  sectionInput.value = activeGroup;
+}
+
+// Navigation button handlers
+document.querySelectorAll(".group-nav__button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const group = btn.dataset.group;
+    if (group) {
+      switchGroup(group);
+    }
+  });
+});
+
 form.addEventListener("submit", handleSubmit);
 openFormBtn?.addEventListener("click", openModal);
 closeFormBtn?.addEventListener("click", closeModal);
@@ -254,5 +295,7 @@ sections.forEach((section) => {
   }
 });
 
+// Initialize
+switchGroup(activeGroup);
 fetchNotes();
 

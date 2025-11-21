@@ -6,29 +6,30 @@
     <title>Shared Notes</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-active-group="homemadedelights">
+    <nav class="group-nav">
+      <button class="group-nav__button active" data-group="homemadedelights" aria-label="Switch to Homemade Delights">
+        Homemade Delights
+      </button>
+      <button class="group-nav__button" data-group="studentselfdefenseadvocates" aria-label="Switch to Student Self Defense Advocates">
+        Student Self Defense Advocates
+      </button>
+    </nav>
+
     <main class="app">
       <header class="app__header">
-        <h1>Shared Notes</h1>
+        <h1 id="group-title">Homemade Delights</h1>
         <p>Leave a note for everyone to see. Notes are saved on the server.</p>
       </header>
 
-      <section class="app__section" aria-labelledby="video-heading" data-section="video">
-        <h2 id="video-heading">Video</h2>
-        <ul class="notes-list" data-section-list="video"></ul>
-        <p class="empty-state" data-section-empty="video">No notes yet. Be the first!</p>
+      <section class="app__section screen" data-section="homemadedelights" data-screen="homemadedelights">
+        <ul class="notes-list" data-section-list="homemadedelights"></ul>
+        <p class="empty-state" data-section-empty="homemadedelights">No notes yet. Be the first!</p>
       </section>
 
-      <section class="app__section" aria-labelledby="research-heading" data-section="research">
-        <h2 id="research-heading">Research</h2>
-        <ul class="notes-list" data-section-list="research"></ul>
-        <p class="empty-state" data-section-empty="research">No notes yet. Be the first!</p>
-      </section>
-
-      <section class="app__section" aria-labelledby="fun-heading" data-section="fun">
-        <h2 id="fun-heading">Fun</h2>
-        <ul class="notes-list" data-section-list="fun"></ul>
-        <p class="empty-state" data-section-empty="fun">No notes yet. Be the first!</p>
+      <section class="app__section screen" data-section="studentselfdefenseadvocates" data-screen="studentselfdefenseadvocates" hidden>
+        <ul class="notes-list" data-section-list="studentselfdefenseadvocates"></ul>
+        <p class="empty-state" data-section-empty="studentselfdefenseadvocates">No notes yet. Be the first!</p>
       </section>
     </main>
 
@@ -59,19 +60,7 @@
         </button>
         <h2 id="add-note-heading">Add a note</h2>
         <form id="note-form">
-          <label class="input-group">
-            <span>Section</span>
-            <select
-              id="section"
-              name="section"
-              required
-            >
-              <option value="">Select a section...</option>
-              <option value="video">Video</option>
-              <option value="research">Research</option>
-              <option value="fun">Fun</option>
-            </select>
-          </label>
+          <input type="hidden" id="section" name="section" />
           <label class="input-group">
             <span>Name (optional)</span>
             <input
