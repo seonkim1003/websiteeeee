@@ -72,6 +72,23 @@
             />
           </label>
           <label class="input-group">
+            <span>Date (optional)</span>
+            <input
+              type="date"
+              id="customDate"
+              name="customDate"
+            />
+          </label>
+          <label class="input-group">
+            <span>Link (optional)</span>
+            <input
+              type="url"
+              id="link"
+              name="link"
+              placeholder="https://example.com"
+            />
+          </label>
+          <label class="input-group">
             <span>Note</span>
             <textarea
               id="content"
@@ -94,7 +111,7 @@
         <div class="note__header">
           <div class="note__meta">
             <span class="note__author"></span>
-            <time class="note__time"></time>
+            <span class="note__date"></span>
           </div>
           <button
             type="button"
@@ -105,7 +122,10 @@
             ×
           </button>
         </div>
-        <p class="note__content"></p>
+        <div class="note__body">
+          <p class="note__content"></p>
+          <a class="note__link" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
+        </div>
       </li>
     </template>
 

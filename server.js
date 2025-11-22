@@ -61,7 +61,7 @@ app.get("/api/notes", async (req, res) => {
 });
 
 app.post("/api/notes", async (req, res) => {
-  const { author = "Anonymous", content, section } = req.body || {};
+  const { author = "Anonymous", content, section, customDate, link } = req.body || {};
 
   if (!content || !content.trim()) {
     return res.status(400).json({ message: "Note content is required." });
@@ -78,6 +78,8 @@ app.post("/api/notes", async (req, res) => {
       author: author.trim() || "Anonymous",
       content: content.trim(),
       section: section,
+      customDate: customDate || null,
+      link: link ? link.trim() : null,
       createdAt: new Date().toISOString()
     };
     notes.unshift(newNote);

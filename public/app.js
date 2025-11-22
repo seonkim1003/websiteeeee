@@ -79,13 +79,28 @@ function createNoteElement(note) {
   instance.dataset.id = note.id;
 
   const authorEl = instance.querySelector(".note__author");
-  const timeEl = instance.querySelector(".note__time");
+  const dateEl = instance.querySelector(".note__date");
   const contentEl = instance.querySelector(".note__content");
+  const linkEl = instance.querySelector(".note__link");
 
   authorEl.textContent = note.author || "Anonymous";
-  timeEl.textContent = formatDate(note.createdAt);
-  timeEl.dateTime = note.createdAt;
+  
+  if (note.customDate) {
+    dateEl.textContent = formatCustomDate(note.customDate);
+    dateEl.style.display = "inline";
+  } else {
+    dateEl.style.display = "none";
+  }
+  
   contentEl.textContent = note.content;
+  
+  if (note.link) {
+    linkEl.href = note.link;
+    linkEl.textContent = note.link;
+    linkEl.style.display = "block";
+  } else {
+    linkEl.style.display = "none";
+  }
 
   return instance;
 }
@@ -96,6 +111,16 @@ function formatDate(input) {
     return dateFormatter.format(new Date(input));
   } catch (error) {
     return input;
+  }
+}
+
+function formatCustomDate(dateString) {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    return dateFormatter.format(date);
+  } catch (error) {
+    return dateString;
   }
 }
 
@@ -128,7 +153,9 @@ async function handleSubmit(event) {
   const payload = {
     author: formData.get("author")?.trim(),
     content: formData.get("content")?.trim(),
-    section: formData.get("section")?.trim()
+    section: formData.get("section")?.trim(),
+    customDate: formData.get("customDate") || null,
+    link: formData.get("link")?.trim() || null
   };
 
   if (!payload.content) {
@@ -293,9 +320,9 @@ sections.forEach((section) => {
       } else if (target.classList.contains("note__author")) {
         // Toggle note content visibility when author/title is clicked
         const noteElement = target.closest(".note");
-        const contentEl = noteElement?.querySelector(".note__content");
-        if (contentEl) {
-          contentEl.classList.toggle("show");
+        const bodyEl = noteElement?.querySelector(".note__body");
+        if (bodyEl) {
+          bodyEl.classList.toggle("show");
         }
       }
     });
