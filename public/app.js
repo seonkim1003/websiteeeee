@@ -311,19 +311,41 @@ sections.forEach((section) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
 
+      // Handle delete button clicks
       if (target.dataset.action === "delete") {
+        event.stopPropagation();
         const noteElement = target.closest(".note");
         const noteId = noteElement?.dataset.id;
         if (noteId) {
           handleDelete(noteId, noteElement);
         }
-      } else if (target.classList.contains("note__author")) {
-        // Toggle note content visibility when author/title is clicked
+        return;
+      }
+
+      // Handle author/title clicks - only if directly clicking the author element
+      if (target.classList.contains("note__author")) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Get the specific note that contains this author element
         const noteElement = target.closest(".note");
-        const bodyEl = noteElement?.querySelector(".note__body");
-        if (bodyEl) {
-          bodyEl.classList.toggle("show");
-        }
+        if (!noteElement) return;
+        
+        // Get the unique note ID to ensure we're only affecting this specific note
+        const noteId = noteElement.dataset.id;
+        if (!noteId) return;
+        
+        const bodyEl = noteElement.querySelector(".note__body");
+        if (!bodyEl) return;
+        
+        // Toggle only the clicked note - don't affect any other notes
+        bodyEl.classList.toggle("show");
+        return;
+      }
+      
+      // Prevent any clicks on note elements (except delete and author) from doing anything
+      if (target.closest(".note") && !target.closest(".note__delete") && !target.closest(".note__author")) {
+        event.stopPropagation();
       }
     });
   }

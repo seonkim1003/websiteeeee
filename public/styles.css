@@ -245,6 +245,7 @@ button:not(.group-nav__button):hover:not(:disabled) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.5rem;
+  align-items: start;
 }
 
 .note {
@@ -257,6 +258,8 @@ button:not(.group-nav__button):hover:not(:disabled) {
   gap: 0.75rem;
   transition: opacity 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  align-self: start;
 }
 
 .note--pending {
