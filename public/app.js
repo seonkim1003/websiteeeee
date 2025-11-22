@@ -290,6 +290,13 @@ sections.forEach((section) => {
         if (noteId) {
           handleDelete(noteId, noteElement);
         }
+      } else if (target.classList.contains("note__author")) {
+        // Toggle note content visibility when author/title is clicked
+        const noteElement = target.closest(".note");
+        const contentEl = noteElement?.querySelector(".note__content");
+        if (contentEl) {
+          contentEl.classList.toggle("show");
+        }
       }
     });
   }
