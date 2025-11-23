@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shared Notes</title>
+    <title>Post Management Board</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body data-active-group="homemadedelights">
@@ -19,17 +19,43 @@
     <main class="app">
       <header class="app__header">
         <h1 id="group-title">Homemade Delights</h1>
-        <p>Leave a note for everyone to see. Notes are saved on the server.</p>
+        <p>Manage posts with status tracking and feedback system.</p>
       </header>
 
       <section class="app__section screen" data-section="homemadedelights" data-screen="homemadedelights">
-        <ul class="notes-list" data-section-list="homemadedelights"></ul>
-        <p class="empty-state" data-section-empty="homemadedelights">No notes yet. Be the first!</p>
+        <div class="board" data-board="homemadedelights">
+          <div class="board__column" data-status="student_feedback">
+            <h3 class="board__column-title">Ready for Student Feedback</h3>
+            <div class="board__column-content" data-column="student_feedback"></div>
+          </div>
+          <div class="board__column" data-status="helen_feedback">
+            <h3 class="board__column-title">Helen Teacher Feedback</h3>
+            <div class="board__column-content" data-column="helen_feedback"></div>
+          </div>
+          <div class="board__column" data-status="final_approved">
+            <h3 class="board__column-title">Final Approved</h3>
+            <div class="board__column-content" data-column="final_approved"></div>
+          </div>
+        </div>
+        <p class="empty-state" data-section-empty="homemadedelights">No posts yet. Be the first!</p>
       </section>
 
       <section class="app__section screen" data-section="studentselfdefenseadvocates" data-screen="studentselfdefenseadvocates" hidden>
-        <ul class="notes-list" data-section-list="studentselfdefenseadvocates"></ul>
-        <p class="empty-state" data-section-empty="studentselfdefenseadvocates">No notes yet. Be the first!</p>
+        <div class="board" data-board="studentselfdefenseadvocates">
+          <div class="board__column" data-status="student_feedback">
+            <h3 class="board__column-title">Ready for Student Feedback</h3>
+            <div class="board__column-content" data-column="student_feedback"></div>
+          </div>
+          <div class="board__column" data-status="helen_feedback">
+            <h3 class="board__column-title">Helen Teacher Feedback</h3>
+            <div class="board__column-content" data-column="helen_feedback"></div>
+          </div>
+          <div class="board__column" data-status="final_approved">
+            <h3 class="board__column-title">Final Approved</h3>
+            <div class="board__column-content" data-column="final_approved"></div>
+          </div>
+        </div>
+        <p class="empty-state" data-section-empty="studentselfdefenseadvocates">No posts yet. Be the first!</p>
       </section>
     </main>
 
@@ -37,7 +63,7 @@
       type="button"
       class="fab"
       id="open-form"
-      aria-label="Add a new note"
+      aria-label="Add a new post"
     >
       +
     </button>
@@ -58,17 +84,42 @@
         >
           ×
         </button>
-        <h2 id="add-note-heading">Add a note</h2>
+        <h2 id="add-note-heading">Add a post</h2>
         <form id="note-form">
           <input type="hidden" id="section" name="section" />
+          <input type="hidden" id="note-id" name="noteId" />
           <label class="input-group">
-            <span>Name (optional)</span>
+            <span>Author Name <span class="required">*</span></span>
             <input
               type="text"
               id="author"
               name="author"
               maxlength="50"
-              placeholder="Anonymous"
+              placeholder="Enter author name"
+              required
+            />
+          </label>
+          <label class="input-group">
+            <span>Post Type <span class="required">*</span></span>
+            <select id="postType" name="postType" required>
+              <option value="">Select post type...</option>
+              <option value="fun">Fun</option>
+              <option value="informational">Informational</option>
+              <option value="research">Research</option>
+              <option value="video_fun">Video Fun</option>
+              <option value="video_informational">Video Informational</option>
+              <option value="video_research">Video Research</option>
+            </select>
+          </label>
+          <label class="input-group">
+            <span>Revision Number</span>
+            <input
+              type="number"
+              id="revision"
+              name="revision"
+              min="1"
+              value="1"
+              placeholder="1"
             />
           </label>
           <label class="input-group">
@@ -89,17 +140,17 @@
             />
           </label>
           <label class="input-group">
-            <span>Note</span>
+            <span>Notes (optional)</span>
             <textarea
               id="content"
               name="content"
               rows="6"
-              required
-              placeholder="Write your note..."
+              placeholder="Write your notes..."
             ></textarea>
           </label>
           <div class="form__actions">
-            <button type="submit" id="submit-btn">Save note</button>
+            <button type="submit" id="submit-btn">Save post</button>
+            <button type="button" id="cancel-btn" style="display: none;">Cancel</button>
             <p class="form__status" id="status" role="status" aria-live="polite"></p>
           </div>
         </form>
@@ -107,26 +158,43 @@
     </div>
 
     <template id="note-template">
-      <li class="note">
-        <div class="note__header">
-          <div class="note__meta">
-            <span class="note__author"></span>
-            <span class="note__date"></span>
+      <div class="post-card" draggable="true">
+        <div class="post-card__header">
+          <div class="post-card__meta">
+            <span class="post-card__author"></span>
+            <span class="post-card__type"></span>
           </div>
           <button
             type="button"
-            class="note__delete"
+            class="post-card__delete"
             data-action="delete"
-            aria-label="Delete note"
+            aria-label="Delete post"
           >
             ×
           </button>
         </div>
-        <div class="note__body">
-          <p class="note__content"></p>
-          <a class="note__link" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
+        <div class="post-card__body">
+          <div class="post-card__revision-info">
+            <span class="post-card__revision">Revision: <strong></strong></span>
+            <span class="post-card__feedback-count">Feedback: <strong></strong></span>
+          </div>
+          <p class="post-card__content" style="display: none;"></p>
+          <a class="post-card__link" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
+          <div class="post-card__feedback-section" style="display: none;">
+            <div class="post-card__feedback-list"></div>
+            <div class="post-card__feedback-form">
+              <input type="text" class="post-card__feedback-name" placeholder="Your name (optional)" maxlength="50">
+              <textarea class="post-card__feedback-text" placeholder="Write your feedback..." rows="3"></textarea>
+              <button type="button" class="post-card__feedback-submit">Post Feedback</button>
+            </div>
+          </div>
+          <div class="post-card__actions">
+            <button type="button" class="post-card__edit" data-action="edit">Edit</button>
+            <button type="button" class="post-card__feedback-btn" data-action="feedback">View/Add Feedback</button>
+            <button type="button" class="post-card__toggle" data-action="toggle">Show Details</button>
+          </div>
         </div>
-      </li>
+      </div>
     </template>
 
     <script src="app.js" type="module"></script>
