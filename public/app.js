@@ -201,7 +201,7 @@ function createNoteElement(note) {
   const dateEl = instance.querySelector(".post-card__date");
   const feedbackBadge = instance.querySelector("[data-feedback-badge]");
   const feedbackBadgeCount = instance.querySelector(".post-card__feedback-badge-count");
-  const toggleBtn = instance.querySelector(".post-card__toggle");
+  const expandedContent = instance.querySelector(".post-card__expanded-content");
   const feedbackBtn = instance.querySelector(".post-card__feedback-btn");
   const feedbackBtnText = instance.querySelector(".post-card__feedback-btn-text");
 
@@ -401,25 +401,56 @@ function createNoteElement(note) {
   });
   
 
-  // Update toggle button text based on visibility
-  const body = instance.querySelector(".post-card__body");
+  // Card expand/collapse functionality
   let isExpanded = false;
+  let wasDragged = false;
   
-  toggleBtn.addEventListener("click", () => {
+  // Make the entire card clickable to expand/collapse (except buttons and links)
+  instance.addEventListener("click", (e) => {
+    // Don't expand if this was a drag operation
+    if (wasDragged) {
+      wasDragged = false;
+      return;
+    }
+    
+    // Don't expand if clicking on buttons - let them work normally
+    if (e.target.closest("button") || e.target.closest("[data-action]")) {
+      return;
+    }
+    
+    // Don't expand if clicking on feedback badge
+    if (e.target.closest("[data-feedback-badge]")) {
+      return;
+    }
+    
+    // Don't expand if clicking on links
+    if (e.target.closest("a")) {
+      return;
+    }
+    
     isExpanded = !isExpanded;
+    
     if (isExpanded) {
-      contentEl.style.display = note.content ? "block" : "none";
-      linkEl.style.display = note.link ? "block" : "none";
-      toggleBtn.textContent = "📋 Hide Details";
+      expandedContent.style.display = "block";
+      instance.classList.add("post-card--expanded");
+      // Show content and link if they exist
+      if (note.content) {
+        contentEl.style.display = "block";
+      }
+      if (note.link) {
+        linkEl.style.display = "block";
+      }
     } else {
+      expandedContent.style.display = "none";
+      instance.classList.remove("post-card--expanded");
       contentEl.style.display = "none";
       linkEl.style.display = "none";
-      toggleBtn.textContent = "📋 Details";
     }
   });
 
   // Drag and drop handlers
   instance.addEventListener("dragstart", (e) => {
+    wasDragged = true;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/html", note.id);
     instance.classList.add("dragging");
@@ -427,6 +458,9 @@ function createNoteElement(note) {
 
   instance.addEventListener("dragend", () => {
     instance.classList.remove("dragging");
+    setTimeout(() => {
+      wasDragged = false;
+    }, 100);
   });
 
   return instance;

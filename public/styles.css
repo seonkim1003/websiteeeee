@@ -335,7 +335,33 @@ button:not(.group-nav__button):hover:not(:disabled) {
   gap: 0.75rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  cursor: grab;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.post-card--expanded {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.post-card__expanded-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .post-card:hover {
@@ -348,6 +374,10 @@ button:not(.group-nav__button):hover:not(:disabled) {
   cursor: grabbing;
 }
 
+.post-card.dragging:hover {
+  transform: none;
+}
+
 .post-card--pending {
   opacity: 0.6;
   pointer-events: none;
@@ -358,7 +388,13 @@ button:not(.group-nav__button):hover:not(:disabled) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.post-card__header button,
+.post-card__header [data-feedback-badge] {
+  pointer-events: auto;
 }
 
 .post-card__meta {
@@ -449,6 +485,12 @@ button:not(.group-nav__button):hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  pointer-events: none;
+}
+
+.post-card__body button,
+.post-card__body a {
+  pointer-events: auto;
 }
 
 .post-card__info-bar {
@@ -501,7 +543,7 @@ button:not(.group-nav__button):hover:not(:disabled) {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
