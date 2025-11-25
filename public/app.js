@@ -8,6 +8,9 @@ const closeFormBtn = document.querySelector("#close-form");
 const cancelBtn = document.querySelector("#cancel-btn");
 const modal = document.querySelector("#note-modal");
 const modalOverlay = modal?.querySelector("[data-close]");
+const feedbackModal = document.querySelector("#feedback-modal");
+const feedbackModalOverlay = feedbackModal?.querySelector("[data-close-feedback]");
+const closeFeedbackBtn = document.querySelector("#close-feedback");
 const body = document.body;
 const groupTitle = document.querySelector("#group-title");
 const sectionInput = document.querySelector("#section");
@@ -33,6 +36,30 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 
 let activeGroup = "homemadedelights";
 let editingNoteId = null;
+
+// Helper functions for read/unread feedback tracking
+function getReadFeedbackIds(noteId) {
+  try {
+    const stored = localStorage.getItem(`readFeedback_${noteId}`);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markFeedbackAsRead(noteId, feedbackId) {
+  const readIds = getReadFeedbackIds(noteId);
+  if (!readIds.includes(feedbackId)) {
+    readIds.push(feedbackId);
+    localStorage.setItem(`readFeedback_${noteId}`, JSON.stringify(readIds));
+  }
+}
+
+function getUnreadCount(noteId, feedbackArray) {
+  if (!feedbackArray || feedbackArray.length === 0) return 0;
+  const readIds = getReadFeedbackIds(noteId);
+  return feedbackArray.filter(fb => !readIds.includes(fb.id)).length;
+}
 
 function formatDate(input) {
   if (!input) return "";
@@ -171,14 +198,12 @@ function createNoteElement(note) {
   const contentEl = instance.querySelector(".post-card__content");
   const linkEl = instance.querySelector(".post-card__link");
   const revisionEl = instance.querySelector(".post-card__revision strong");
-  const feedbackCountEl = instance.querySelector(".post-card__feedback-count strong");
+  const dateEl = instance.querySelector(".post-card__date");
+  const feedbackBadge = instance.querySelector("[data-feedback-badge]");
+  const feedbackBadgeCount = instance.querySelector(".post-card__feedback-badge-count");
   const toggleBtn = instance.querySelector(".post-card__toggle");
-  const feedbackSection = instance.querySelector(".post-card__feedback-section");
-  const feedbackList = instance.querySelector(".post-card__feedback-list");
   const feedbackBtn = instance.querySelector(".post-card__feedback-btn");
-  const feedbackNameInput = instance.querySelector(".post-card__feedback-name");
-  const feedbackTextInput = instance.querySelector(".post-card__feedback-text");
-  const feedbackSubmitBtn = instance.querySelector(".post-card__feedback-submit");
+  const feedbackBtnText = instance.querySelector(".post-card__feedback-btn-text");
 
   authorEl.textContent = note.author || "Anonymous";
   typeEl.textContent = postTypeLabels[note.postType] || "Fun";
@@ -194,137 +219,187 @@ function createNoteElement(note) {
   }
 
   revisionEl.textContent = note.revision || 1;
+  
+  // Display date
+  if (note.customDate) {
+    dateEl.textContent = formatDate(note.customDate);
+  } else if (note.createdAt) {
+    dateEl.textContent = formatDate(note.createdAt);
+  } else {
+    dateEl.textContent = "";
+  }
+  
   const feedback = note.feedback || [];
-  feedbackCountEl.textContent = feedback.length;
-
-  // Render feedback list - sorted by newest first
-  function renderFeedbackList(feedbackArray) {
-    feedbackList.innerHTML = "";
-    if (!feedbackArray || feedbackArray.length === 0) {
-      feedbackList.innerHTML = "<p class='post-card__feedback-empty'>No feedback yet.</p>";
-      return;
-    }
-    
-    // Sort by date (newest first)
-    const sortedFeedback = [...feedbackArray].sort((a, b) => {
-      const dateA = new Date(a.createdAt || 0);
-      const dateB = new Date(b.createdAt || 0);
-      return dateB - dateA;
-    });
-    
-    sortedFeedback.forEach((fb) => {
-      const fbItem = document.createElement("div");
-      fbItem.className = "post-card__feedback-item";
-      
-      const fbHeader = document.createElement("div");
-      fbHeader.className = "post-card__feedback-header";
-      
-      const fbAuthor = document.createElement("span");
-      fbAuthor.className = "post-card__feedback-author";
-      fbAuthor.textContent = fb.feedbacker || "Anonymous";
-      
-      const fbDate = document.createElement("span");
-      fbDate.className = "post-card__feedback-date";
-      fbDate.textContent = formatDate(fb.createdAt);
-      
-      fbHeader.appendChild(fbAuthor);
-      fbHeader.appendChild(fbDate);
-      fbItem.appendChild(fbHeader);
-      
-      // Always show feedback text, even if empty (just show indication)
-      const fbText = document.createElement("div");
-      fbText.className = "post-card__feedback-text-display";
-      if (fb.text && fb.text.trim()) {
-        fbText.textContent = fb.text;
-      } else {
-        fbText.textContent = "(No comment provided)";
-        fbText.style.fontStyle = "italic";
-        fbText.style.color = "var(--text-secondary)";
-      }
-      fbItem.appendChild(fbText);
-      
-      feedbackList.appendChild(fbItem);
-    });
+  const unreadCount = getUnreadCount(note.id, feedback);
+  
+  // Update feedback badge to show unread count
+  if (unreadCount > 0) {
+    feedbackBadgeCount.textContent = unreadCount;
+    feedbackBadge.style.display = "flex";
+    feedbackBadge.classList.add("post-card__feedback-badge--unread");
+  } else {
+    feedbackBadge.style.display = "none";
+    feedbackBadge.classList.remove("post-card__feedback-badge--unread");
   }
 
-  renderFeedbackList(feedback);
+  // Update button text to show unread count
+  if (unreadCount > 0) {
+    feedbackBtnText.textContent = `💬 Feedback (${unreadCount} unread)`;
+  } else if (feedback.length > 0) {
+    feedbackBtnText.textContent = `💬 Feedback (${feedback.length})`;
+  } else {
+    feedbackBtnText.textContent = "💬 Feedback";
+  }
 
-  // Toggle feedback section
-  let feedbackExpanded = false;
+  // Open fullscreen feedback modal
+  function openFeedbackModal() {
+    const feedbackModalList = document.querySelector("#feedback-list");
+    const feedbackPostInfo = document.querySelector("#feedback-post-info");
+    const feedbackModalName = document.querySelector("#feedback-name");
+    const feedbackModalText = document.querySelector("#feedback-text");
+    const feedbackModalSubmit = document.querySelector("#feedback-submit");
+    
+    // Store note ID in modal for later use
+    feedbackModal.dataset.noteId = note.id;
+    
+    // Set post info
+    feedbackPostInfo.innerHTML = `
+      <div class="feedback-modal__post-author">${escapeHtml(note.author || "Anonymous")}</div>
+      <div class="feedback-modal__post-type">${escapeHtml(postTypeLabels[note.postType] || "Fun")}</div>
+      <div class="feedback-modal__post-revision">Revision ${note.revision || 1}</div>
+    `;
+    
+    // Render feedback list in modal with checkmarks
+    function renderModalFeedbackList(feedbackArray) {
+      feedbackModalList.innerHTML = "";
+      if (!feedbackArray || feedbackArray.length === 0) {
+        feedbackModalList.innerHTML = "<p class='feedback-modal__empty'>No feedback yet.</p>";
+        return;
+      }
+      
+      const readIds = getReadFeedbackIds(note.id);
+      
+      // Sort by date (newest first)
+      const sortedFeedback = [...feedbackArray].sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA;
+      });
+      
+      sortedFeedback.forEach((fb) => {
+        const isRead = readIds.includes(fb.id);
+        const fbItem = document.createElement("div");
+        fbItem.className = `feedback-modal__item ${isRead ? 'feedback-modal__item--read' : 'feedback-modal__item--unread'}`;
+        fbItem.dataset.feedbackId = fb.id;
+        fbItem.style.cursor = "pointer";
+        
+        const fbHeader = document.createElement("div");
+        fbHeader.className = "feedback-modal__item-header";
+        
+        const fbLeft = document.createElement("div");
+        fbLeft.className = "feedback-modal__item-left";
+        
+        const checkmark = document.createElement("span");
+        checkmark.className = `feedback-modal__checkmark ${isRead ? 'feedback-modal__checkmark--checked' : ''}`;
+        checkmark.innerHTML = isRead ? "✓" : "";
+        checkmark.setAttribute("aria-label", isRead ? "Mark as unread" : "Mark as read");
+        
+        const fbAuthor = document.createElement("span");
+        fbAuthor.className = "feedback-modal__item-author";
+        fbAuthor.textContent = fb.feedbacker || "Anonymous";
+        
+        fbLeft.appendChild(checkmark);
+        fbLeft.appendChild(fbAuthor);
+        fbHeader.appendChild(fbLeft);
+        
+        const fbDate = document.createElement("span");
+        fbDate.className = "feedback-modal__item-date";
+        fbDate.textContent = formatDate(fb.createdAt);
+        
+        fbHeader.appendChild(fbDate);
+        fbItem.appendChild(fbHeader);
+        
+        const fbText = document.createElement("div");
+        fbText.className = "feedback-modal__item-text";
+        if (fb.text && fb.text.trim()) {
+          fbText.textContent = fb.text;
+        } else {
+          fbText.textContent = "(No comment provided)";
+          fbText.style.fontStyle = "italic";
+          fbText.style.color = "var(--text-secondary)";
+        }
+        fbItem.appendChild(fbText);
+        
+        // Click handler to mark as read/unread
+        fbItem.addEventListener("click", () => {
+          const currentReadIds = getReadFeedbackIds(note.id);
+          const currentlyRead = currentReadIds.includes(fb.id);
+          
+          if (currentlyRead) {
+            // Mark as unread
+            const newReadIds = currentReadIds.filter(id => id !== fb.id);
+            localStorage.setItem(`readFeedback_${note.id}`, JSON.stringify(newReadIds));
+            fbItem.classList.remove("feedback-modal__item--read");
+            fbItem.classList.add("feedback-modal__item--unread");
+            checkmark.classList.remove("feedback-modal__checkmark--checked");
+            checkmark.innerHTML = "";
+          } else {
+            // Mark as read
+            markFeedbackAsRead(note.id, fb.id);
+            fbItem.classList.remove("feedback-modal__item--unread");
+            fbItem.classList.add("feedback-modal__item--read");
+            checkmark.classList.add("feedback-modal__checkmark--checked");
+            checkmark.innerHTML = "✓";
+          }
+          
+          // Update unread count and badge
+          const newUnreadCount = getUnreadCount(note.id, feedback);
+          if (newUnreadCount > 0) {
+            feedbackBadgeCount.textContent = newUnreadCount;
+            feedbackBadge.style.display = "flex";
+            feedbackBadge.classList.add("post-card__feedback-badge--unread");
+            feedbackBtnText.textContent = `💬 Feedback (${newUnreadCount} unread)`;
+          } else {
+            feedbackBadge.style.display = "none";
+            feedbackBadge.classList.remove("post-card__feedback-badge--unread");
+            if (feedback.length > 0) {
+              feedbackBtnText.textContent = `💬 Feedback (${feedback.length})`;
+            } else {
+              feedbackBtnText.textContent = "💬 Feedback";
+            }
+          }
+        });
+        
+        feedbackModalList.appendChild(fbItem);
+      });
+    }
+    
+    renderModalFeedbackList(feedback);
+    
+    // Clear form
+    feedbackModalName.value = "";
+    feedbackModalText.value = "";
+    
+    // Store references for updating card after submit
+    feedbackModal.dataset.cardElementId = instance.dataset.id;
+    
+    // Show modal
+    feedbackModal.hidden = false;
+    feedbackModal.setAttribute("aria-hidden", "false");
+    body.classList.add("modal-open");
+    
+    // Focus on textarea
+    setTimeout(() => {
+      feedbackModalText.focus();
+    }, 100);
+  }
+  
   feedbackBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
-    feedbackExpanded = !feedbackExpanded;
-    if (feedbackExpanded) {
-      feedbackSection.style.display = "block";
-      feedbackBtn.textContent = "Hide Feedback";
-      // Scroll feedback section into view slightly
-      setTimeout(() => {
-        feedbackSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }, 100);
-    } else {
-      feedbackSection.style.display = "none";
-      feedbackBtn.textContent = `View/Add Feedback${feedback.length > 0 ? ` (${feedback.length})` : ""}`;
-    }
+    openFeedbackModal();
   });
   
-  // Update button text to show count
-  if (feedback.length > 0) {
-    feedbackBtn.textContent = `View/Add Feedback (${feedback.length})`;
-  }
-
-  // Submit feedback
-  feedbackSubmitBtn.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    const feedbackerName = feedbackNameInput.value.trim() || "Anonymous";
-    const feedbackText = feedbackTextInput.value.trim();
-
-    if (!feedbackText) {
-      alert("Please enter feedback text.");
-      return;
-    }
-
-    feedbackSubmitBtn.disabled = true;
-    feedbackSubmitBtn.textContent = "Posting...";
-
-    try {
-      const noteId = note.id;
-      const response = await fetch(`/api/notes/${encodeURIComponent(noteId)}/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          feedbacker: feedbackerName,
-          feedbackText: feedbackText
-        })
-      });
-
-      if (!response.ok) {
-        const { message } = await response.json().catch(() => ({}));
-        throw new Error(message || "Failed to post feedback.");
-      }
-
-      const updatedNote = await response.json();
-      const newFeedback = updatedNote.feedback || [];
-      renderFeedbackList(newFeedback);
-      feedbackCountEl.textContent = newFeedback.length;
-      feedbackNameInput.value = "";
-      feedbackTextInput.value = "";
-      
-      // Update button text with new count
-      feedbackBtn.textContent = newFeedback.length > 0 
-        ? `Hide Feedback (${newFeedback.length})` 
-        : "Hide Feedback";
-      
-      // Keep feedback section expanded after posting
-      feedbackSection.style.display = "block";
-    } catch (error) {
-      console.error(error);
-      alert(error.message || "Could not post feedback. Try again.");
-    } finally {
-      feedbackSubmitBtn.disabled = false;
-      feedbackSubmitBtn.textContent = "Post Feedback";
-    }
-  });
 
   // Update toggle button text based on visibility
   const body = instance.querySelector(".post-card__body");
@@ -335,11 +410,11 @@ function createNoteElement(note) {
     if (isExpanded) {
       contentEl.style.display = note.content ? "block" : "none";
       linkEl.style.display = note.link ? "block" : "none";
-      toggleBtn.textContent = "Hide Details";
+      toggleBtn.textContent = "📋 Hide Details";
     } else {
       contentEl.style.display = "none";
       linkEl.style.display = "none";
-      toggleBtn.textContent = "Show Details";
+      toggleBtn.textContent = "📋 Details";
     }
   });
 
@@ -597,15 +672,174 @@ document.querySelectorAll(".group-nav__button").forEach((btn) => {
   });
 });
 
+function closeFeedbackModal() {
+  feedbackModal.hidden = true;
+  feedbackModal.setAttribute("aria-hidden", "true");
+  body.classList.remove("modal-open");
+}
+
 form.addEventListener("submit", handleSubmit);
 openFormBtn?.addEventListener("click", () => openModal());
 closeFormBtn?.addEventListener("click", closeModal);
 cancelBtn?.addEventListener("click", closeModal);
 modalOverlay?.addEventListener("click", closeModal);
+closeFeedbackBtn?.addEventListener("click", closeFeedbackModal);
+feedbackModalOverlay?.addEventListener("click", closeFeedbackModal);
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && modal && !modal.hidden) {
-    closeModal();
+  if (event.key === "Escape") {
+    if (modal && !modal.hidden) {
+      closeModal();
+    } else if (feedbackModal && !feedbackModal.hidden) {
+      closeFeedbackModal();
+    }
+  }
+});
+
+// Global handler for feedback modal submit
+document.addEventListener("click", async (event) => {
+  if (event.target && event.target.id === "feedback-submit") {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const feedbackModal = document.querySelector("#feedback-modal");
+    if (feedbackModal.hidden) return;
+    
+    const noteId = feedbackModal.dataset.noteId;
+    const cardElementId = feedbackModal.dataset.cardElementId;
+    const feedbackModalName = document.querySelector("#feedback-name");
+    const feedbackModalText = document.querySelector("#feedback-text");
+    const feedbackModalSubmit = document.querySelector("#feedback-submit");
+    const feedbackModalList = document.querySelector("#feedback-list");
+    
+    const feedbackerName = feedbackModalName.value.trim() || "Anonymous";
+    const feedbackText = feedbackModalText.value.trim();
+
+    if (!feedbackText) {
+      alert("Please enter feedback text.");
+      return;
+    }
+
+    feedbackModalSubmit.disabled = true;
+    feedbackModalSubmit.textContent = "Posting...";
+
+    try {
+      const response = await fetch(`/api/notes/${encodeURIComponent(noteId)}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          feedbacker: feedbackerName,
+          feedbackText: feedbackText
+        })
+      });
+
+      if (!response.ok) {
+        const { message } = await response.json().catch(() => ({}));
+        throw new Error(message || "Failed to post feedback.");
+      }
+
+      const updatedNote = await response.json();
+      const newFeedback = updatedNote.feedback || [];
+      
+      // Refresh notes to update all displays (this will re-render with new unread counts)
+      fetchNotes();
+      
+      // Re-open modal to show new feedback (new feedback is unread by default)
+      const cardElement = document.querySelector(`[data-id="${cardElementId}"]`);
+      if (cardElement) {
+        const cardNote = { id: noteId, feedback: newFeedback };
+        // Re-render the modal with updated feedback
+        setTimeout(() => {
+          const modalList = document.querySelector("#feedback-list");
+          if (modalList && !feedbackModal.hidden) {
+            const readIds = getReadFeedbackIds(noteId);
+            const sortedFeedback = [...newFeedback].sort((a, b) => {
+              const dateA = new Date(a.createdAt || 0);
+              const dateB = new Date(b.createdAt || 0);
+              return dateB - dateA;
+            });
+            
+            modalList.innerHTML = "";
+            sortedFeedback.forEach((fb) => {
+              const isRead = readIds.includes(fb.id);
+              const fbItem = document.createElement("div");
+              fbItem.className = `feedback-modal__item ${isRead ? 'feedback-modal__item--read' : 'feedback-modal__item--unread'}`;
+              fbItem.dataset.feedbackId = fb.id;
+              fbItem.style.cursor = "pointer";
+              
+              const fbHeader = document.createElement("div");
+              fbHeader.className = "feedback-modal__item-header";
+              
+              const fbLeft = document.createElement("div");
+              fbLeft.className = "feedback-modal__item-left";
+              
+              const checkmark = document.createElement("span");
+              checkmark.className = `feedback-modal__checkmark ${isRead ? 'feedback-modal__checkmark--checked' : ''}`;
+              checkmark.innerHTML = isRead ? "✓" : "";
+              
+              const fbAuthor = document.createElement("span");
+              fbAuthor.className = "feedback-modal__item-author";
+              fbAuthor.textContent = fb.feedbacker || "Anonymous";
+              
+              fbLeft.appendChild(checkmark);
+              fbLeft.appendChild(fbAuthor);
+              fbHeader.appendChild(fbLeft);
+              
+              const fbDate = document.createElement("span");
+              fbDate.className = "feedback-modal__item-date";
+              fbDate.textContent = formatDate(fb.createdAt);
+              
+              fbHeader.appendChild(fbDate);
+              fbItem.appendChild(fbHeader);
+              
+              const fbText = document.createElement("div");
+              fbText.className = "feedback-modal__item-text";
+              if (fb.text && fb.text.trim()) {
+                fbText.textContent = fb.text;
+              } else {
+                fbText.textContent = "(No comment provided)";
+                fbText.style.fontStyle = "italic";
+                fbText.style.color = "var(--text-secondary)";
+              }
+              fbItem.appendChild(fbText);
+              
+              fbItem.addEventListener("click", () => {
+                const currentReadIds = getReadFeedbackIds(noteId);
+                const currentlyRead = currentReadIds.includes(fb.id);
+                
+                if (currentlyRead) {
+                  const newReadIds = currentReadIds.filter(id => id !== fb.id);
+                  localStorage.setItem(`readFeedback_${noteId}`, JSON.stringify(newReadIds));
+                  fbItem.classList.remove("feedback-modal__item--read");
+                  fbItem.classList.add("feedback-modal__item--unread");
+                  checkmark.classList.remove("feedback-modal__checkmark--checked");
+                  checkmark.innerHTML = "";
+                } else {
+                  markFeedbackAsRead(noteId, fb.id);
+                  fbItem.classList.remove("feedback-modal__item--unread");
+                  fbItem.classList.add("feedback-modal__item--read");
+                  checkmark.classList.add("feedback-modal__checkmark--checked");
+                  checkmark.innerHTML = "✓";
+                }
+                
+                fetchNotes();
+              });
+              
+              modalList.appendChild(fbItem);
+            });
+          }
+        }, 100);
+      }
+      
+      feedbackModalName.value = "";
+      feedbackModalText.value = "";
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Could not post feedback. Try again.");
+    } finally {
+      feedbackModalSubmit.disabled = false;
+      feedbackModalSubmit.textContent = "Post Feedback";
+    }
   }
 });
 

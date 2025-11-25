@@ -157,6 +157,38 @@
       </div>
     </div>
 
+    <div class="feedback-modal" id="feedback-modal" aria-hidden="true" hidden>
+      <div class="feedback-modal__overlay" data-close-feedback></div>
+      <div
+        class="feedback-modal__content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-heading"
+      >
+        <button
+          type="button"
+          class="feedback-modal__close"
+          id="close-feedback"
+          aria-label="Close feedback view"
+        >
+          ×
+        </button>
+        <div class="feedback-modal__header">
+          <h2 id="feedback-heading">Feedback</h2>
+          <div class="feedback-modal__post-info" id="feedback-post-info"></div>
+        </div>
+        <div class="feedback-modal__body">
+          <div class="feedback-modal__list" id="feedback-list"></div>
+          <div class="feedback-modal__form">
+            <h3 class="feedback-modal__form-title">Add Feedback</h3>
+            <input type="text" class="feedback-modal__name" id="feedback-name" placeholder="Your name (optional)" maxlength="50">
+            <textarea class="feedback-modal__text" id="feedback-text" placeholder="Write your feedback..." rows="6"></textarea>
+            <button type="button" class="feedback-modal__submit" id="feedback-submit">Post Feedback</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <template id="note-template">
       <div class="post-card" draggable="true">
         <div class="post-card__header">
@@ -164,34 +196,34 @@
             <span class="post-card__author"></span>
             <span class="post-card__type"></span>
           </div>
-          <button
-            type="button"
-            class="post-card__delete"
-            data-action="delete"
-            aria-label="Delete post"
-          >
-            ×
-          </button>
+          <div class="post-card__header-actions">
+            <span class="post-card__feedback-badge" data-feedback-badge>
+              <span class="post-card__feedback-badge-count"></span>
+            </span>
+            <button
+              type="button"
+              class="post-card__delete"
+              data-action="delete"
+              aria-label="Delete post"
+            >
+              ×
+            </button>
+          </div>
         </div>
         <div class="post-card__body">
-          <div class="post-card__revision-info">
-            <span class="post-card__revision">Revision: <strong></strong></span>
-            <span class="post-card__feedback-count">Feedback: <strong></strong></span>
+          <div class="post-card__info-bar">
+            <span class="post-card__revision">Rev. <strong></strong></span>
+            <span class="post-card__date"></span>
           </div>
           <p class="post-card__content" style="display: none;"></p>
           <a class="post-card__link" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
-          <div class="post-card__feedback-section" style="display: none;">
-            <div class="post-card__feedback-list"></div>
-            <div class="post-card__feedback-form">
-              <input type="text" class="post-card__feedback-name" placeholder="Your name (optional)" maxlength="50">
-              <textarea class="post-card__feedback-text" placeholder="Write your feedback..." rows="3"></textarea>
-              <button type="button" class="post-card__feedback-submit">Post Feedback</button>
-            </div>
-          </div>
+          
           <div class="post-card__actions">
-            <button type="button" class="post-card__edit" data-action="edit">Edit</button>
-            <button type="button" class="post-card__feedback-btn" data-action="feedback">View/Add Feedback</button>
-            <button type="button" class="post-card__toggle" data-action="toggle">Show Details</button>
+            <button type="button" class="post-card__edit" data-action="edit">✏️ Edit</button>
+            <button type="button" class="post-card__feedback-btn" data-action="feedback">
+              <span class="post-card__feedback-btn-text">💬 Feedback</span>
+            </button>
+            <button type="button" class="post-card__toggle" data-action="toggle">📋 Details</button>
           </div>
         </div>
       </div>
